@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="section">
+  <h1><i class="fa-solid fa-receipt" style="color: var(--accent)"></i> Confirm Order</h1>
+
+  <div class="panel">
+    <div class="table-wrap">
+      <table>
+        <tr>
+          <th>Item</th>
+          <th>Qty</th>
+          <th>Subtotal</th>
+        </tr>
+        {% for item in cart %}
+          <tr>
+            <td>{{ item.name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>${{ '%.2f'|format(item.price * item.quantity) }}</td>
+          </tr>
+        {% endfor %}
+        <tr>
+          <th colspan="2">Total</th>
+          <th>${{ '%.2f'|format(total) }}</th>
+        </tr>
+      </table>
+    </div>
+
+    <form method="post" action="{{ url_for('order_place') }}" class="form-grid mt-16">
+      {% if current_user %}
+        <label for="current_user_name">Customer Name</label>
+        <input type="text" id="current_user_name" value="{{ current_user.name }}" readonly>
+
+        <label for="current_user_phone">Phone</label>
+        <input type="text" id="current_user_phone" value="{{ user_phone }}" readonly>
+
+        <label for="current_user_address">Address</label>
+        <textarea id="current_user_address" rows="2" readonly>{{ user_address }}</textarea>
+      {% else %}
+        <label for="customer_name">Customer Name</label>
+        <input type="text" id="customer_name" name="customer_name" required>
+
+        <label for="phone">Phone</label>
+        <input type="text" id="phone" name="phone" required>
+
+        <label for="address">Address</label>
+        <textarea id="address" name="address" rows="2" required></textarea>
+      {% endif %}
+
+      <label for="notes">Notes</label>
+      <textarea id="notes" name="notes" rows="3"></textarea>
+
+      <button type="submit" class="btn"><i class="fa-solid fa-bag-shopping"></i> Place Order</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="section">
+  <h1><i class="fa-solid fa-shield-halved" style="color: var(--accent)"></i> Admin Dashboard</h1>
+
+  <div class="admin-grid">
+    <div class="panel">
+      <h2><i class="fa-solid fa-plus" style="color: var(--accent)"></i> Add Accessory</h2>
+      <form method="post" action="{{ url_for('admin_product_store') }}" enctype="multipart/form-data" class="form-grid">
+        <label>Accessory Name</label>
+        <input type="text" name="name" required>
+
+        <label>Category</label>
+        <select name="category" required>
+          <option value="">Select category</option>
+          {% for c in category_options %}
+          <option value="{{ c }}">{{ c }}</option>
+          {% endfor %}
+        </select>
+
+        <label>Description</label>
+        <textarea name="description" rows="3" placeholder="Short luxury description..."></textarea>
+
+        <label>Price</label>
+        <input type="number" name="price" step="0.01" min="0.01" required>
+
+        <label>Image File</label>
+        <input type="file" name="image_file" accept=".jpg,.jpeg,.png,.webp,.gif">
+
+        <label class="row-inline">
+          <input type="checkbox" name="is_featured" value="Y">
+          Mark as Featured Accessory          
+        </label>
+
+        <button type="submit" class="btn"><i class="fa-solid fa-floppy-disk"></i> Add Accessory</button>
+      </form>
+
+      <p class="small-muted" style="margin-top:10px">
+        Tip: If no image is uploaded, the system uses a default placeholder.
+      </p>
+    </div>
+
+    <div class="panel">
+      <h2><i class="fa-solid fa-chart-line" style="color: var(--accent)"></i> Feedback Report</h2>
+      <p class="small-muted">Feedback rows shown for the selected order history date range.</p>
+
+      <div class="table-wrap mt-16">
+        <table>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Promotion</th>
+            <th>SMS</th>
+            <th>WhatsApp</th>
+            <th>Email</th>
+          </tr>
+          {% for row in feedbackRows %}
+          <tr>
+            <td>{{ row.name }}</td>
+            <td>{{ row.email }}</td>
+            <td>{{ row.phone }}</td>
+            <td>{{ row.promotion }}</td>
+            <td>{{ row.channel_sms }}</td>
+            <td>{{ row.channel_whatsapp }}</td>
+            <td>{{ row.channel_email }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel mt-16">
+    <h2><i class="fa-solid fa-tags" style="color: var(--accent)"></i> Accessories</h2>
+    <div class="table-wrap">
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Category</th>
+          <th>Price</th>
+          <th>Featured</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+        {% for item in menuItems %}
+        <tr>
+          <td>{{ item.id }}</td>
+          <td>{{ item.name }}</td>
+          <td>{{ item.category }}</td>
+          <td>${{ '%.2f'|format(item.price) }}</td>
+          <td>{{ 'Yes' if item.is_featured else 'No' }}</td>
+          <td>{{ 'Active' if item.is_active else 'Hidden' }}</td>
+          <td>
+            <div class="row-inline">
+              <form method="post" action="{{ url_for('admin_product_toggle', product_id=item.id) }}">
+                <button class="btn" type="submit"><i
+                    class="fa-solid fa-eye{{ '-slash' if item.is_active else '' }}"></i> {{ 'Hide' if item.is_active
+                  else 'Restore' }}</button>
+              </form>
+              <form method="post" action="{{ url_for('admin_product_delete', product_id=item.id) }}"
+                onsubmit="return confirm('Delete product ID {{ item.id }}?');">
+                <button class="btn btn-danger" type="submit"><i class="fa-solid fa-trash"></i> Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+
+  <div class="panel mt-16">
+    <div class="row-inline" style="justify-content:space-between; align-items:end;">
+      <h2><i class="fa-solid fa-clock-rotate-left" style="color: var(--accent)"></i> Order History</h2>
+      <form method="get" action="{{ url_for('admin_dashboard') }}" class="row-inline">
+        <div>
+          <label for="from" class="small-muted">From</label>
+          <input type="date" id="from" name="from" value="{{ from_ }}" required>
+        </div>
+        <div>
+          <label for="to" class="small-muted">To</label>
+          <input type="date" id="to" name="to" value="{{ to }}" required>
+        </div>
+        <button type="submit" class="btn"><i class="fa-solid fa-filter"></i> Generate</button>
+      </form>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>Customer</th>
+          <th>Phone</th>
+          <th>Address</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+        {% for order in orders %}
+        <tr>
+          <td>#{{ order.id }}</td>
+          <td>{{ order.customer_name }}</td>
+          <td>{{ order.phone }}</td>
+          <td>{{ order.address }}</td>
+          <td>${{ '%.2f'|format(order.total_amount) }}</td>
+          <td>
+            <form method="post" action="{{ url_for('admin_order_status_update', order_id=order.id) }}"
+              class="row-inline">
+              <input type="hidden" name="next" value="{{ url_for('admin_dashboard') }}">
+              <select name="status">
+                {% for s in order_statuses %}
+                <option value="{{ s }}" {% if s==order.status %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+              </select>
+              <button class="btn" type="submit"><i class="fa-solid fa-pen"></i> Update</button>
+            </form>
+          </td>
+          <td>{{ order.created_at }}</td>
+          <td>
+            <div class="row-inline">
+              <a class="btn" href="{{ url_for('admin_order_detail', order_id=order.id) }}"><i
+                  class="fa-solid fa-receipt"></i> Details</a>
+              <form method="post" action="{{ url_for('admin_order_delete', order_id=order.id) }}"
+                onsubmit="return confirm('Delete order #{{ order.id }}? This cannot be undone.');">
+                <button class="btn btn-danger" type="submit"><i class="fa-solid fa-trash"></i> Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}

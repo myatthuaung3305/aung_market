@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="auth-wrap">
+  <div class="auth-card">
+    <h1>Sign Up</h1>
+    <p>Create your Aung Market account.</p>
+    <form method="post" action="{{ url_for('register_store') }}" class="form-grid">
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" required>
+
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" required>
+
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required>
+
+      <label for="password_confirmation">Confirm Password</label>
+      <input type="password" id="password_confirmation" name="password_confirmation" required>
+
+      <button type="submit" class="btn"><i class="fa-solid fa-user-plus"></i> Create Account</button>
+    </form>
+
+    <p class="small-muted" style="margin-top:10px">
+      Already have an account? <a href="{{ url_for('login') }}">Login</a>
+    </p>
+  </div>
+</section>
+{% endblock %}

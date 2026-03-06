@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+aung_market.db
+
+static/assets/images/menu_uploads/*
+!static/assets/images/menu_uploads/.gitkeep

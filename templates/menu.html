@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="section">
+  <h1><i class="fa-solid fa-bag-shopping" style="color: var(--accent)"></i> Take Order</h1>
+
+  <div class="panel">
+    <p class="small-muted">Choose accessories by category, set quantity, then continue to cart and confirm your order.</p>
+    <div class="row-inline mt-16">
+      <a class="btn" href="{{ url_for('cart') }}"><i class="fa-solid fa-cart-shopping"></i> View Cart</a>
+      <a class="btn" href="{{ url_for('order_confirm') }}"><i class="fa-solid fa-receipt"></i> Confirm Order</a>
+      <a class="btn" href="{{ url_for('home') }}"><i class="fa-solid fa-house"></i> Back Home</a>
+    </div>
+  </div>
+
+  {% if items|length == 0 %}
+    <div class="panel mt-16">
+      <p>No accessories available right now.</p>
+      {% if current_user and current_user.is_admin %}
+        <p><a href="{{ url_for('admin_dashboard') }}">Add accessories in Admin Panel</a>.</p>
+      {% endif %}
+    </div>
+  {% else %}
+    <h2 class="mt-16"><i class="fa-solid fa-layer-group" style="color: var(--accent)"></i> All Items</h2>
+    <div class="card-grid product-grid">
+      {% for category, list in items.items() %}
+        {% for item in list %}
+          <article class="card product-card">
+            {% if item.image_path %}
+              <img src="{{ url_for('static', filename=item.image_path) }}" alt="{{ item.name }}">
+            {% else %}
+              <img src="{{ url_for('static', filename='assets/images/today_special.webp') }}" alt="{{ item.name }}">
+            {% endif %}
+            <h3>{{ item.name }}</h3>
+            <p class="small-muted"><strong>Category:</strong> {{ category }}</p>
+            <p class="product-desc">{{ item.description or 'Premium luxury accessory.' }}</p>
+            <div class="price">${{ '%.2f'|format(item.price) }}</div>
+            <form method="post" action="{{ url_for('cart_add', product_id=item.id) }}" class="row-inline product-form">
+              <input class="qty-input" type="number" name="quantity" value="1" min="1" max="20">
+              <button type="submit" class="btn"><i class="fa-solid fa-cart-plus"></i> Add to Cart</button>
+            </form>
+          </article>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

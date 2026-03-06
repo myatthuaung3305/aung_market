@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="section">
+  <h1><i class="fa-solid fa-crown" style="color: var(--accent)"></i> Order Receipt</h1>
+
+  <div class="panel">
+    <p><strong>Order #:</strong> {{ order.id }}</p>
+    <p><strong>Date:</strong> {{ order.created_at }}</p>
+    <p><strong>Customer:</strong> {{ order.customer_name }}</p>
+    <p><strong>Phone:</strong> {{ order.phone }}</p>
+    <p><strong>Address:</strong> {{ order.address }}</p>
+    <p><strong>Status:</strong> {{ order.status }}</p>
+    {% if order.notes %}
+      <p><strong>Notes:</strong> {{ order.notes }}</p>
+    {% endif %}
+
+    <div class="table-wrap">
+      <table>
+        <tr>
+          <th>Item</th>
+          <th>Qty</th>
+          <th>Price</th>
+          <th>Subtotal</th>
+        </tr>
+        {% for item in items %}
+          <tr>
+            <td>{{ item.item_name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>${{ '%.2f'|format(item.unit_price) }}</td>
+            <td>${{ '%.2f'|format(item.line_total) }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <p class="total">Total: ${{ '%.2f'|format(order.total_amount) }}</p>
+    <div class="row-inline">
+      <a href="{{ url_for('menu') }}" class="btn"><i class="fa-solid fa-bag-shopping"></i> Take New Order</a>
+      <a href="{{ url_for('home') }}" class="btn"><i class="fa-solid fa-house"></i> Back Home</a>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="feedback">
+  <h2><i class="fa-solid fa-envelope" style="color: var(--accent)"></i> Feedback About Your Order</h2>
+  <form method="post" action="{{ url_for('feedback_store') }}" class="panel form-grid">
+    <input type="hidden" name="order_id" value="{{ order.id }}">
+
+    <label for="name">Name</label>
+    <input type="text" id="name" name="name" value="{{ order.customer_name }}" required>
+
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" value="{{ current_user.email if current_user else '' }}" required>
+
+    <label for="phone">Phone</label>
+    <input type="text" id="phone" name="phone" value="{{ order.phone }}" required>
+
+    <label for="message">Feedback</label>
+    <textarea id="message" name="message" rows="4" required></textarea>
+
+    <label>Do you want promotions?</label>
+    <div class="row-inline">
+      <label class="row-inline"><input type="radio" name="promotion" value="Y" required> Yes</label>
+      <label class="row-inline"><input type="radio" name="promotion" value="N"> No</label>
+    </div>
+
+    <div id="channelBox" class="row-inline">
+      <label class="row-inline"><input type="checkbox" name="sms" value="Y"> SMS</label>
+      <label class="row-inline"><input type="checkbox" name="whatsapp" value="Y"> WhatsApp</label>
+      <label class="row-inline"><input type="checkbox" name="emailch" value="Y"> Email</label>
+    </div>
+
+    <button type="submit" class="btn"><i class="fa-solid fa-paper-plane"></i> Send Feedback</button>
+  </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const promotionInputs = document.querySelectorAll('input[name="promotion"]');
+  const channelBox = document.getElementById('channelBox');
+
+  function toggleChannels(){
+    const selected = document.querySelector('input[name="promotion"]:checked');
+    channelBox.style.display = (selected && selected.value === 'Y') ? 'flex' : 'none';
+  }
+
+  promotionInputs.forEach(i => i.addEventListener('change', toggleChannels));
+  toggleChannels();
+</script>
+{% endblock %}

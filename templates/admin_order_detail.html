@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="section">
+  <h1><i class="fa-solid fa-receipt" style="color: var(--accent)"></i> Order #{{ order.id }} (Admin)</h1>
+
+  <div class="panel">
+    <p><strong>Date:</strong> {{ order.created_at }}</p>
+    <p><strong>Customer:</strong> {{ order.customer_name }}</p>
+    <p><strong>Phone:</strong> {{ order.phone }}</p>
+    <p><strong>Address:</strong> {{ order.address }}</p>
+    <p><strong>Status:</strong> {{ order.status }}</p>
+    <form method="post" action="{{ url_for('admin_order_status_update', order_id=order.id) }}" class="row-inline mt-16">
+      <input type="hidden" name="next" value="{{ url_for('admin_order_detail', order_id=order.id) }}">
+      <label for="status"><strong>Update Status:</strong></label>
+      <select id="status" name="status">
+        {% for s in order_statuses %}
+          <option value="{{ s }}" {% if s == order.status %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+      <button class="btn" type="submit"><i class="fa-solid fa-pen"></i> Update</button>
+    </form>
+    {% if order.notes %}<p><strong>Notes:</strong> {{ order.notes }}</p>{% endif %}
+
+    <div class="table-wrap mt-16">
+      <table>
+        <tr>
+          <th>Item</th>
+          <th>Qty</th>
+          <th>Unit Price</th>
+          <th>Line Total</th>
+        </tr>
+        {% for it in items %}
+          <tr>
+            <td>{{ it.item_name }}</td>
+            <td>{{ it.quantity }}</td>
+            <td>${{ '%.2f'|format(it.unit_price) }}</td>
+            <td>${{ '%.2f'|format(it.line_total) }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <p class="total">Total: ${{ '%.2f'|format(order.total_amount) }}</p>
+
+    <div class="row-inline">
+      <a class="btn" href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-arrow-left"></i> Back to Admin</a>
+      <form method="post" action="{{ url_for('admin_order_delete', order_id=order.id) }}" onsubmit="return confirm('Delete order #{{ order.id }}? This cannot be undone.');">
+        <button class="btn btn-danger" type="submit"><i class="fa-solid fa-trash"></i> Delete Order</button>
+      </form>
+      <a class="btn" href="{{ url_for('home') }}"><i class="fa-solid fa-house"></i> Home</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

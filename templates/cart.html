@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="section">
+  <style>
+    i.fa-cart-shopping {
+      color: var(--accent);
+    }
+  </style>
+  <h1><i class="fa-solid fa-cart-shopping"></i> Your Cart</h1>
+
+  {% if cart|length == 0 %}
+    <div class="panel">
+      <p>Cart is empty. <a href="{{ url_for('menu') }}">Start your order</a>.</p>
+    </div>
+  {% else %}
+    <form method="post" action="{{ url_for('cart_update') }}" class="panel">
+      <div class="table-wrap">
+        <table>
+          <tr>
+            <th>Item</th>
+            <th>Price</th>
+            <th>Qty</th>
+            <th>Subtotal</th>
+            <th>Remove</th>
+          </tr>
+          {% for item in cart %}
+            <tr>
+              <td>{{ item.name }}</td>
+              <td>${{ '%.2f'|format(item.price) }}</td>
+              <td>
+                <input type="number" name="quantities[{{ item.product_id }}]" value="{{ item.quantity }}" min="0" max="50">
+              </td>
+              <td>${{ '%.2f'|format(item.price * item.quantity) }}</td>
+              <td>
+                <button class="btn btn-danger" type="submit" formaction="{{ url_for('cart_remove', product_id=item.product_id) }}">X</button>
+              </td>
+            </tr>
+          {% endfor %}
+        </table>
+      </div>
+
+      <p class="total">Total: ${{ '%.2f'|format(total) }}</p>
+      <div class="row-inline">
+        <button type="submit" class="btn"><i class="fa-solid fa-arrows-rotate"></i> Update Cart</button>
+        <button type="submit" class="btn btn-danger" formaction="{{ url_for('cart_clear') }}"><i class="fa-solid fa-trash"></i> Clear Cart</button>
+        <a class="btn" href="{{ url_for('order_confirm') }}"><i class="fa-solid fa-receipt"></i> Confirm Order</a>
+      </div>
+    </form>
+  {% endif %}
+</section>
+{% endblock %}

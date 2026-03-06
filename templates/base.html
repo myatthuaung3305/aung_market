@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title or 'Aung Market' }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/styles.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  {% block head %}{% endblock %}
+</head>
+
+<body>
+  <header class="site-header">
+    <nav class="site-nav container">
+      <a class="brand" href="{{ url_for('home') }}">
+        <span class="logo-badge"><i class="fa-solid fa-gem"></i></span>
+        <span>Aung Market</span>
+      </a>
+
+      <div class="nav-links">
+        <a href="{{ url_for('home') }}"><i class="fa-solid fa-house"></i> Home</a>
+        <a href="{{ url_for('menu') }}"><i class="fa-solid fa-bag-shopping"></i> Take Order</a>
+        <a href="{{ url_for('cart') }}"><i class="fa-solid fa-cart-shopping"></i> Cart</a>
+
+        {% if current_user %}
+        {% if current_user.is_admin %}
+        <a href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-shield-halved"></i> Admin</a>
+        {% else %}
+        <a href="{{ url_for('my_orders') }}"><i class="fa-solid fa-clock-rotate-left"></i> My Orders</a>
+        {% endif %}
+        <a href="{{ url_for('profile') }}"><i class="fa-solid fa-user"></i> Profile</a>
+        <form method="post" action="{{ url_for('logout') }}" class="inline-form">
+          <button type="submit" class="link-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+        </form>
+        {% else %}
+        <a href="{{ url_for('login') }}"><i class="fa-solid fa-right-to-bracket"></i> Login</a>
+        <a href="{{ url_for('register') }}"><i class="fa-solid fa-user-plus"></i> Sign Up</a>
+        {% endif %}
+      </div>
+    </nav>
+  </header>
+
+  <main class="container main-wrap">
+    {% if success %}
+    <div class="flash flash-success">{{ success }}</div>
+    {% endif %}
+    {% if error %}
+    <div class="flash flash-error">{{ error }}</div>
+    {% endif %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, msg in messages %}
+    <div class="flash {{ 'flash-success' if category=='success' else 'flash-error' }}">{{ msg }}</div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; {{ now_year }} Aung Market. Luxury Accessories Ordering System.</p>
+  </footer>
+
+  {% block scripts %}{% endblock %}
+</body>
+
+</html>
