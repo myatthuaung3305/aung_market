@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
+import os
 from pathlib import Path
 from typing import Any
 
@@ -24,7 +25,7 @@ DEFAULT_PRODUCT_CATEGORIES = ("Watches", "Jewelry", "Bags", "Sunglasses", "Perfu
 DEFAULT_SORT = "featured"
 
 app = Flask(__name__)
-app.secret_key = "dev"  # change for production
+app.secret_key = os.environ.get("SECRET_KEY", "dev")
 
 
 @app.before_request
@@ -893,4 +894,8 @@ def admin_order_delete(order_id: int):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(
+        host=os.environ.get("FLASK_HOST", "127.0.0.1"),
+        port=int(os.environ.get("PORT", "5000")),
+        debug=os.environ.get("FLASK_DEBUG", "1") == "1",
+    )

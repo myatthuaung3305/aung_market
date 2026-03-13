@@ -72,3 +72,9 @@ python app.py
 
 - Python syntax checked with `py_compile`
 - Key routes tested locally with the Flask test client
+
+## Deployment
+
+- `render.yaml` is included for a Render web service
+- `wsgi.py` exposes the Flask app for `gunicorn`
+- Set `SECRET_KEY` in production
