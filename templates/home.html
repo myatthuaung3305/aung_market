@@ -1,70 +1,105 @@
 {% extends 'base.html' %}
 {% block content %}
 <section class="hero">
-  <div>
-    <h1>Aung Market</h1>
-    <p>Luxury accessories with a premium Black &amp; Gold experience - watches, jewelry, bags, and more.</p>
-    <div class="row-inline">
-      <a class="btn" href="{{ url_for('menu') }}"><i class="fa-solid fa-bag-shopping"></i> Start Order</a>
-      <a class="btn" href="{{ url_for('cart') }}"><i class="fa-solid fa-cart-shopping"></i> View Cart</a>
+  <div class="hero-copy">
+    <span class="hero-eyebrow">Aung Market</span>
+    <h1>Watches, Jewelry, Bags, and More</h1>
+    <p class="hero-lead">Browse products, add items to your cart, and place orders online.</p>
+
+    <div class="hero-actions">
+      <a class="btn" href="{{ url_for('menu') }}"><i class="fa-solid fa-bag-shopping"></i> Start Shopping</a>
+      <a class="btn btn-ghost" href="{{ url_for('cart') }}"><i class="fa-solid fa-cart-shopping"></i> View Cart</a>
       {% if current_user and current_user.is_admin %}
-      <a class="btn" href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-shield-halved"></i> Admin Panel</a>
+        <a class="btn btn-ghost" href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-shield-halved"></i> Admin Panel</a>
       {% endif %}
     </div>
-    <p class="small-muted" style="margin-top:10px">Tip: Login to auto-fill your name at checkout.</p>
+
+    <div class="hero-metrics">
+      <article class="hero-metric">
+        <strong>{{ featuredItems|length }}</strong>
+        <span>Home items</span>
+      </article>
+      <article class="hero-metric">
+        <strong>5</strong>
+        <span>Categories</span>
+      </article>
+      <article class="hero-metric">
+        <strong>Cart</strong>
+        <span>Order steps</span>
+      </article>
+    </div>
+
   </div>
-  <img src="{{ url_for('static', filename='assets/images/intro_image.jpeg') }}" alt="Aung Market">
+
+  <div class="hero-visual">
+    <img src="{{ url_for('static', filename='assets/images/intro_image.jpeg') }}" alt="Aung Market hero">
+    <div class="hero-spotlight">
+      <span>Catalog</span>
+      <strong>Shop by category or search by name</strong>
+    </div>
+  </div>
 </section>
 
 <section class="section">
-  <h2><i class="fa-solid fa-route" style="color: var(--accent)"></i> How To Order</h2>
+  <div class="section-title-row">
+    <h2><i class="fa-solid fa-route" style="color: var(--accent)"></i> Order</h2>
+  </div>
   <div class="card-grid">
     <article class="card">
-      <h3>1. Browse Accessories</h3>
-      <p>Open the Take Order page and choose items by category.</p>
+      <h3>1. Browse</h3>
+      <p>Search products and filter by category.</p>
     </article>
     <article class="card">
-      <h3>2. Manage Cart</h3>
-      <p>Adjust quantity, remove items, and review your total before checkout.</p>
+      <h3>2. Add to Cart</h3>
+      <p>Choose an item and set the quantity.</p>
     </article>
     <article class="card">
-      <h3>3. Confirm &amp; Submit</h3>
-      <p>Place your order and get an instant receipt with feedback form.</p>
+      <h3>3. Checkout</h3>
+      <p>Confirm the order and track its status.</p>
     </article>
-  </div>
-  <div class="row-inline mt-16">
-    <a class="btn" href="{{ url_for('menu') }}"><i class="fa-solid fa-bag-shopping"></i> Take Order Now</a>
-    <a class="btn" href="{{ url_for('order_confirm') }}"><i class="fa-solid fa-receipt"></i> Go To Confirm</a>
   </div>
 </section>
 
 <section class="section">
-  <h2><i class="fa-solid fa-star" style="color: var(--accent)"></i> Featured Accessories</h2>
+  <div class="section-title-row">
+    <h2><i class="fa-solid fa-star" style="color: var(--accent)"></i> Products</h2>
+    <a class="btn btn-ghost" href="{{ url_for('menu', sort='featured') }}"><i class="fa-solid fa-arrow-right"></i> Shop</a>
+  </div>
+
   {% if featuredItems|length == 0 %}
-  <div class="panel">
-    <p>No featured accessories yet. {% if current_user and current_user.is_admin %}Mark items as featured in <a
-        href="{{ url_for('admin_dashboard') }}">Admin</a>.{% else %}Ask admin to mark some products as featured.{% endif
-      %}</p>
-  </div>
+    <div class="panel">
+      <p>No items to show.</p>
+    </div>
   {% else %}
-  <div class="card-grid product-grid">
-    {% for item in featuredItems %}
-    <article class="card product-card">
-      {% if item.image_path %}
-      <img src="{{ url_for('static', filename=item.image_path) }}" alt="{{ item.name }}">
-      {% else %}
-      <img src="{{ url_for('static', filename='assets/images/today_special.webp') }}" alt="{{ item.name }}">
-      {% endif %}
-      <h3>{{ item.name }}</h3>
-      <p class="product-desc">{{ item.description or 'Premium luxury accessory.' }}</p>
-      <div class="price">${{ '%.2f'|format(item.price) }}</div>
-      <form method="post" action="{{ url_for('cart_add', product_id=item.id) }}" class="row-inline product-form">
-        <input class="qty-input" type="number" name="quantity" value="1" min="1" max="20">
-        <button type="submit" class="btn"><i class="fa-solid fa-cart-plus"></i> Add to Cart</button>
-      </form>
-    </article>
-    {% endfor %}
-  </div>
+    <div class="card-grid product-grid">
+      {% for item in featuredItems %}
+        <article class="card product-card">
+          <a class="product-image-link" href="{{ url_for('product_detail', product_id=item.id) }}">
+            {% if item.image_path %}
+              <img src="{{ url_for('static', filename=item.image_path) }}" alt="{{ item.name }}">
+            {% else %}
+              <img src="{{ url_for('static', filename='assets/images/intro_image.jpeg') }}" alt="{{ item.name }}">
+            {% endif %}
+            {% if item.is_featured %}
+              <span class="product-badge">Featured</span>
+            {% endif %}
+          </a>
+          <div class="product-meta">
+            <h3><a href="{{ url_for('product_detail', product_id=item.id) }}">{{ item.name }}</a></h3>
+            <p class="product-desc">{{ item.description or 'No description.' }}</p>
+            <div class="price">${{ '%.2f'|format(item.price) }}</div>
+          </div>
+          <div class="product-card-actions">
+            <a class="btn btn-ghost" href="{{ url_for('product_detail', product_id=item.id) }}"><i class="fa-solid fa-eye"></i> Details</a>
+            <form method="post" action="{{ url_for('cart_add', product_id=item.id) }}" class="row-inline product-form">
+              <input type="hidden" name="next" value="{{ request.path }}">
+              <input class="qty-input" type="number" name="quantity" value="1" min="1" max="20">
+              <button type="submit" class="btn"><i class="fa-solid fa-cart-plus"></i> Add to Cart</button>
+            </form>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
   {% endif %}
 </section>
 {% endblock %}

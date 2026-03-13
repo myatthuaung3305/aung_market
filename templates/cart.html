@@ -15,7 +15,7 @@
   {% else %}
     <form method="post" action="{{ url_for('cart_update') }}" class="panel">
       <div class="table-wrap">
-        <table>
+        <table class="responsive-table">
           <tr>
             <th>Item</th>
             <th>Price</th>
@@ -25,13 +25,13 @@
           </tr>
           {% for item in cart %}
             <tr>
-              <td>{{ item.name }}</td>
-              <td>${{ '%.2f'|format(item.price) }}</td>
-              <td>
+              <td data-label="Item">{{ item.name }}</td>
+              <td data-label="Price">${{ '%.2f'|format(item.price) }}</td>
+              <td data-label="Qty">
                 <input type="number" name="quantities[{{ item.product_id }}]" value="{{ item.quantity }}" min="0" max="50">
               </td>
-              <td>${{ '%.2f'|format(item.price * item.quantity) }}</td>
-              <td>
+              <td data-label="Subtotal">${{ '%.2f'|format(item.price * item.quantity) }}</td>
+              <td data-label="Remove">
                 <button class="btn btn-danger" type="submit" formaction="{{ url_for('cart_remove', product_id=item.product_id) }}">X</button>
               </td>
             </tr>
@@ -40,7 +40,7 @@
       </div>
 
       <p class="total">Total: ${{ '%.2f'|format(total) }}</p>
-      <div class="row-inline">
+      <div class="row-inline action-group">
         <button type="submit" class="btn"><i class="fa-solid fa-arrows-rotate"></i> Update Cart</button>
         <button type="submit" class="btn btn-danger" formaction="{{ url_for('cart_clear') }}"><i class="fa-solid fa-trash"></i> Clear Cart</button>
         <a class="btn" href="{{ url_for('order_confirm') }}"><i class="fa-solid fa-receipt"></i> Confirm Order</a>

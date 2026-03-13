@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="section">
+  <div class="product-detail-layout">
+    <article class="panel product-detail-main">
+      <div class="product-detail-media">
+        {% if product.image_path %}
+          <img src="{{ url_for('static', filename=product.image_path) }}" alt="{{ product.name }}">
+        {% else %}
+          <img src="{{ url_for('static', filename='assets/images/intro_image.jpeg') }}" alt="{{ product.name }}">
+        {% endif %}
+        {% if product.is_featured %}
+          <span class="product-badge">Featured</span>
+        {% endif %}
+      </div>
+
+      <div class="product-detail-copy">
+        <p class="small-muted">Category: {{ product.category }}</p>
+        <h1>{{ product.name }}</h1>
+        <p class="product-detail-description">{{ product.description or 'No description.' }}</p>
+        <p class="price">${{ '%.2f'|format(product.price) }}</p>
+
+        <form method="post" action="{{ url_for('cart_add', product_id=product.id) }}" class="row-inline product-detail-form">
+          <input type="hidden" name="next" value="{{ request.path }}">
+          <label for="quantity" class="small-muted">Quantity</label>
+          <input id="quantity" class="qty-input" type="number" name="quantity" value="1" min="1" max="20">
+          <button type="submit" class="btn"><i class="fa-solid fa-cart-plus"></i> Add to Cart</button>
+          <a class="btn btn-ghost" href="{{ url_for('menu') }}"><i class="fa-solid fa-arrow-left"></i> Back to Shop</a>
+        </form>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-title-row">
+    <h2><i class="fa-solid fa-layer-group" style="color: var(--accent)"></i> Related Items</h2>
+    <a class="btn btn-ghost" href="{{ url_for('menu', category=product.category) }}"><i class="fa-solid fa-tag"></i> More in {{ product.category }}</a>
+  </div>
+
+  {% if related_items %}
+    <div class="card-grid product-grid">
+      {% for item in related_items %}
+        <article class="card product-card">
+          <a class="product-image-link" href="{{ url_for('product_detail', product_id=item.id) }}">
+            {% if item.image_path %}
+              <img src="{{ url_for('static', filename=item.image_path) }}" alt="{{ item.name }}">
+            {% else %}
+              <img src="{{ url_for('static', filename='assets/images/intro_image.jpeg') }}" alt="{{ item.name }}">
+            {% endif %}
+            {% if item.is_featured %}
+              <span class="product-badge">Featured</span>
+            {% endif %}
+          </a>
+          <div class="product-meta">
+            <p class="small-muted"><strong>Category:</strong> {{ item.category }}</p>
+            <h3><a href="{{ url_for('product_detail', product_id=item.id) }}">{{ item.name }}</a></h3>
+            <p class="product-desc">{{ item.description or 'No description.' }}</p>
+            <div class="price">${{ '%.2f'|format(item.price) }}</div>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="panel">
+      <p>No related items found.</p>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

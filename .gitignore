@@ -3,6 +3,9 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+node_modules/
+ui_*.png
+ui_test_server.*.log
 
 aung_market.db
 

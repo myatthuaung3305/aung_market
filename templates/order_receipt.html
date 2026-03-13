@@ -9,13 +9,13 @@
     <p><strong>Customer:</strong> {{ order.customer_name }}</p>
     <p><strong>Phone:</strong> {{ order.phone }}</p>
     <p><strong>Address:</strong> {{ order.address }}</p>
-    <p><strong>Status:</strong> {{ order.status }}</p>
+    <p><strong>Status:</strong> <span class="status-badge {{ status_class(order.status) }}">{{ order.status }}</span></p>
     {% if order.notes %}
       <p><strong>Notes:</strong> {{ order.notes }}</p>
     {% endif %}
 
     <div class="table-wrap">
-      <table>
+      <table class="responsive-table">
         <tr>
           <th>Item</th>
           <th>Qty</th>
@@ -24,17 +24,17 @@
         </tr>
         {% for item in items %}
           <tr>
-            <td>{{ item.item_name }}</td>
-            <td>{{ item.quantity }}</td>
-            <td>${{ '%.2f'|format(item.unit_price) }}</td>
-            <td>${{ '%.2f'|format(item.line_total) }}</td>
+            <td data-label="Item">{{ item.item_name }}</td>
+            <td data-label="Qty">{{ item.quantity }}</td>
+            <td data-label="Price">${{ '%.2f'|format(item.unit_price) }}</td>
+            <td data-label="Subtotal">${{ '%.2f'|format(item.line_total) }}</td>
           </tr>
         {% endfor %}
       </table>
     </div>
 
     <p class="total">Total: ${{ '%.2f'|format(order.total_amount) }}</p>
-    <div class="row-inline">
+    <div class="row-inline action-group">
       <a href="{{ url_for('menu') }}" class="btn"><i class="fa-solid fa-bag-shopping"></i> Take New Order</a>
       <a href="{{ url_for('home') }}" class="btn"><i class="fa-solid fa-house"></i> Back Home</a>
     </div>
@@ -59,12 +59,12 @@
     <textarea id="message" name="message" rows="4" required></textarea>
 
     <label>Do you want promotions?</label>
-    <div class="row-inline">
+    <div class="row-inline action-group">
       <label class="row-inline"><input type="radio" name="promotion" value="Y" required> Yes</label>
       <label class="row-inline"><input type="radio" name="promotion" value="N"> No</label>
     </div>
 
-    <div id="channelBox" class="row-inline">
+    <div id="channelBox" class="row-inline action-group">
       <label class="row-inline"><input type="checkbox" name="sms" value="Y"> SMS</label>
       <label class="row-inline"><input type="checkbox" name="whatsapp" value="Y"> WhatsApp</label>
       <label class="row-inline"><input type="checkbox" name="emailch" value="Y"> Email</label>

@@ -1,45 +1,87 @@
 {% extends 'base.html' %}
 {% block content %}
 <section class="section">
-  <h1><i class="fa-solid fa-bag-shopping" style="color: var(--accent)"></i> Take Order</h1>
-
-  <div class="panel">
-    <p class="small-muted">Choose accessories by category, set quantity, then continue to cart and confirm your order.</p>
-    <div class="row-inline mt-16">
+  <div class="section-title-row">
+    <div>
+      <h1><i class="fa-solid fa-bag-shopping" style="color: var(--accent)"></i> Take Order</h1>
+    </div>
+    <div class="row-inline">
       <a class="btn" href="{{ url_for('cart') }}"><i class="fa-solid fa-cart-shopping"></i> View Cart</a>
       <a class="btn" href="{{ url_for('order_confirm') }}"><i class="fa-solid fa-receipt"></i> Confirm Order</a>
-      <a class="btn" href="{{ url_for('home') }}"><i class="fa-solid fa-house"></i> Back Home</a>
     </div>
   </div>
 
+  <form method="get" action="{{ url_for('menu') }}" class="panel filter-panel">
+    <div class="filter-grid">
+      <div>
+        <label for="q">Search</label>
+        <input id="q" type="search" name="q" value="{{ search_query }}" placeholder="Search watches, bags, jewelry...">
+      </div>
+      <div>
+        <label for="category">Category</label>
+        <select id="category" name="category">
+          <option value="">All categories</option>
+          {% for category in categories %}
+            <option value="{{ category }}" {% if category == selected_category %}selected{% endif %}>{{ category }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="sort">Sort</label>
+        <select id="sort" name="sort">
+          <option value="featured" {% if current_sort == 'featured' %}selected{% endif %}>Default</option>
+          <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest</option>
+          <option value="price_asc" {% if current_sort == 'price_asc' %}selected{% endif %}>Price: low to high</option>
+          <option value="price_desc" {% if current_sort == 'price_desc' %}selected{% endif %}>Price: high to low</option>
+          <option value="name" {% if current_sort == 'name' %}selected{% endif %}>Name</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="submit" class="btn"><i class="fa-solid fa-filter"></i> Apply</button>
+        <a class="btn btn-ghost" href="{{ url_for('menu') }}"><i class="fa-solid fa-rotate-left"></i> Reset</a>
+      </div>
+    </div>
+  </form>
+
   {% if items|length == 0 %}
     <div class="panel mt-16">
-      <p>No accessories available right now.</p>
-      {% if current_user and current_user.is_admin %}
-        <p><a href="{{ url_for('admin_dashboard') }}">Add accessories in Admin Panel</a>.</p>
-      {% endif %}
+      <p>No items matched your search.</p>
     </div>
   {% else %}
-    <h2 class="mt-16"><i class="fa-solid fa-layer-group" style="color: var(--accent)"></i> All Items</h2>
+    <div class="results-row mt-16">
+      <p class="small-muted">{{ items|length }} items found</p>
+    </div>
+
     <div class="card-grid product-grid">
-      {% for category, list in items.items() %}
-        {% for item in list %}
-          <article class="card product-card">
+      {% for item in items %}
+        <article class="card product-card">
+          <a class="product-image-link" href="{{ url_for('product_detail', product_id=item.id) }}">
             {% if item.image_path %}
               <img src="{{ url_for('static', filename=item.image_path) }}" alt="{{ item.name }}">
             {% else %}
-              <img src="{{ url_for('static', filename='assets/images/today_special.webp') }}" alt="{{ item.name }}">
+              <img src="{{ url_for('static', filename='assets/images/intro_image.jpeg') }}" alt="{{ item.name }}">
             {% endif %}
-            <h3>{{ item.name }}</h3>
-            <p class="small-muted"><strong>Category:</strong> {{ category }}</p>
-            <p class="product-desc">{{ item.description or 'Premium luxury accessory.' }}</p>
+            {% if item.is_featured %}
+              <span class="product-badge">Featured</span>
+            {% endif %}
+          </a>
+          <div class="product-meta">
+            <p class="small-muted"><strong>Category:</strong> {{ item.category }}</p>
+            <h3><a href="{{ url_for('product_detail', product_id=item.id) }}">{{ item.name }}</a></h3>
+            <p class="product-desc">{{ item.description or 'No description.' }}</p>
             <div class="price">${{ '%.2f'|format(item.price) }}</div>
+          </div>
+          <div class="product-card-actions">
+            <a class="btn btn-ghost" href="{{ url_for('product_detail', product_id=item.id) }}">
+              <i class="fa-solid fa-eye"></i> Details
+            </a>
             <form method="post" action="{{ url_for('cart_add', product_id=item.id) }}" class="row-inline product-form">
+              <input type="hidden" name="next" value="{{ request.full_path if request.query_string else request.path }}">
               <input class="qty-input" type="number" name="quantity" value="1" min="1" max="20">
               <button type="submit" class="btn"><i class="fa-solid fa-cart-plus"></i> Add to Cart</button>
             </form>
-          </article>
-        {% endfor %}
+          </div>
+        </article>
       {% endfor %}
     </div>
   {% endif %}

@@ -5,7 +5,7 @@
 
   <div class="panel">
     <div class="table-wrap">
-      <table>
+      <table class="responsive-table">
         <tr>
           <th>Item</th>
           <th>Qty</th>
@@ -13,14 +13,14 @@
         </tr>
         {% for item in cart %}
           <tr>
-            <td>{{ item.name }}</td>
-            <td>{{ item.quantity }}</td>
-            <td>${{ '%.2f'|format(item.price * item.quantity) }}</td>
+            <td data-label="Item">{{ item.name }}</td>
+            <td data-label="Qty">{{ item.quantity }}</td>
+            <td data-label="Subtotal">${{ '%.2f'|format(item.price * item.quantity) }}</td>
           </tr>
         {% endfor %}
         <tr>
           <th colspan="2">Total</th>
-          <th>${{ '%.2f'|format(total) }}</th>
+          <th data-label="Total">${{ '%.2f'|format(total) }}</th>
         </tr>
       </table>
     </div>

@@ -1,13 +1,36 @@
 {% extends 'base.html' %}
 {% block content %}
 <section class="section">
-  <h1><i class="fa-solid fa-shield-halved" style="color: var(--accent)"></i> Admin Dashboard</h1>
+  <h1><i class="fa-solid fa-shield-halved" style="color: var(--accent)"></i> Admin</h1>
+
+  <div class="summary-grid">
+    <article class="summary-card">
+      <span class="summary-label">Products</span>
+      <strong>{{ summary.products }}</strong>
+      <p>{{ summary.active_products }} active</p>
+    </article>
+    <article class="summary-card">
+      <span class="summary-label">Orders</span>
+      <strong>{{ summary.orders }}</strong>
+      <p>Current range</p>
+    </article>
+    <article class="summary-card">
+      <span class="summary-label">Revenue</span>
+      <strong>${{ '%.2f'|format(summary.revenue) }}</strong>
+      <p>Current range</p>
+    </article>
+    <article class="summary-card">
+      <span class="summary-label">Feedback</span>
+      <strong>{{ summary.feedback }}</strong>
+      <p>Current range</p>
+    </article>
+  </div>
 
   <div class="admin-grid">
     <div class="panel">
-      <h2><i class="fa-solid fa-plus" style="color: var(--accent)"></i> Add Accessory</h2>
+      <h2><i class="fa-solid fa-plus" style="color: var(--accent)"></i> Add Product</h2>
       <form method="post" action="{{ url_for('admin_product_store') }}" enctype="multipart/form-data" class="form-grid">
-        <label>Accessory Name</label>
+        <label>Product Name</label>
         <input type="text" name="name" required>
 
         <label>Category</label>
@@ -19,7 +42,7 @@
         </select>
 
         <label>Description</label>
-        <textarea name="description" rows="3" placeholder="Short luxury description..."></textarea>
+        <textarea name="description" rows="3" placeholder="Short product description"></textarea>
 
         <label>Price</label>
         <input type="number" name="price" step="0.01" min="0.01" required>
@@ -29,23 +52,18 @@
 
         <label class="row-inline">
           <input type="checkbox" name="is_featured" value="Y">
-          Mark as Featured Accessory          
+          Show on home page
         </label>
 
-        <button type="submit" class="btn"><i class="fa-solid fa-floppy-disk"></i> Add Accessory</button>
+        <button type="submit" class="btn"><i class="fa-solid fa-floppy-disk"></i> Add Product</button>
       </form>
-
-      <p class="small-muted" style="margin-top:10px">
-        Tip: If no image is uploaded, the system uses a default placeholder.
-      </p>
     </div>
 
     <div class="panel">
       <h2><i class="fa-solid fa-chart-line" style="color: var(--accent)"></i> Feedback Report</h2>
-      <p class="small-muted">Feedback rows shown for the selected order history date range.</p>
 
       <div class="table-wrap mt-16">
-        <table>
+        <table class="responsive-table">
           <tr>
             <th>Name</th>
             <th>Email</th>
@@ -57,13 +75,13 @@
           </tr>
           {% for row in feedbackRows %}
           <tr>
-            <td>{{ row.name }}</td>
-            <td>{{ row.email }}</td>
-            <td>{{ row.phone }}</td>
-            <td>{{ row.promotion }}</td>
-            <td>{{ row.channel_sms }}</td>
-            <td>{{ row.channel_whatsapp }}</td>
-            <td>{{ row.channel_email }}</td>
+            <td data-label="Name">{{ row.name }}</td>
+            <td data-label="Email">{{ row.email }}</td>
+            <td data-label="Phone">{{ row.phone }}</td>
+            <td data-label="Promotion">{{ row.promotion }}</td>
+            <td data-label="SMS">{{ row.channel_sms }}</td>
+            <td data-label="WhatsApp">{{ row.channel_whatsapp }}</td>
+            <td data-label="Email Channel">{{ row.channel_email }}</td>
           </tr>
           {% endfor %}
         </table>
@@ -72,9 +90,9 @@
   </div>
 
   <div class="panel mt-16">
-    <h2><i class="fa-solid fa-tags" style="color: var(--accent)"></i> Accessories</h2>
+    <h2><i class="fa-solid fa-tags" style="color: var(--accent)"></i> Products</h2>
     <div class="table-wrap">
-      <table>
+      <table class="responsive-table">
         <tr>
           <th>ID</th>
           <th>Name</th>
@@ -86,14 +104,14 @@
         </tr>
         {% for item in menuItems %}
         <tr>
-          <td>{{ item.id }}</td>
-          <td>{{ item.name }}</td>
-          <td>{{ item.category }}</td>
-          <td>${{ '%.2f'|format(item.price) }}</td>
-          <td>{{ 'Yes' if item.is_featured else 'No' }}</td>
-          <td>{{ 'Active' if item.is_active else 'Hidden' }}</td>
-          <td>
-            <div class="row-inline">
+          <td data-label="ID">{{ item.id }}</td>
+          <td data-label="Name">{{ item.name }}</td>
+          <td data-label="Category">{{ item.category }}</td>
+          <td data-label="Price">${{ '%.2f'|format(item.price) }}</td>
+          <td data-label="Featured">{{ 'Yes' if item.is_featured else 'No' }}</td>
+          <td data-label="Status">{{ 'Active' if item.is_active else 'Hidden' }}</td>
+          <td data-label="Actions">
+            <div class="row-inline action-group">
               <form method="post" action="{{ url_for('admin_product_toggle', product_id=item.id) }}">
                 <button class="btn" type="submit"><i
                     class="fa-solid fa-eye{{ '-slash' if item.is_active else '' }}"></i> {{ 'Hide' if item.is_active
@@ -112,9 +130,9 @@
   </div>
 
   <div class="panel mt-16">
-    <div class="row-inline" style="justify-content:space-between; align-items:end;">
+    <div class="row-inline dashboard-toolbar" style="justify-content:space-between; align-items:end;">
       <h2><i class="fa-solid fa-clock-rotate-left" style="color: var(--accent)"></i> Order History</h2>
-      <form method="get" action="{{ url_for('admin_dashboard') }}" class="row-inline">
+      <form method="get" action="{{ url_for('admin_dashboard') }}" class="row-inline toolbar-form">
         <div>
           <label for="from" class="small-muted">From</label>
           <input type="date" id="from" name="from" value="{{ from_ }}" required>
@@ -127,7 +145,7 @@
       </form>
     </div>
     <div class="table-wrap">
-      <table>
+      <table class="responsive-table">
         <tr>
           <th>ID</th>
           <th>Customer</th>
@@ -140,14 +158,14 @@
         </tr>
         {% for order in orders %}
         <tr>
-          <td>#{{ order.id }}</td>
-          <td>{{ order.customer_name }}</td>
-          <td>{{ order.phone }}</td>
-          <td>{{ order.address }}</td>
-          <td>${{ '%.2f'|format(order.total_amount) }}</td>
-          <td>
+          <td data-label="Order">#{{ order.id }}</td>
+          <td data-label="Customer">{{ order.customer_name }}</td>
+          <td data-label="Phone">{{ order.phone }}</td>
+          <td data-label="Address">{{ order.address }}</td>
+          <td data-label="Total">${{ '%.2f'|format(order.total_amount) }}</td>
+          <td data-label="Status">
             <form method="post" action="{{ url_for('admin_order_status_update', order_id=order.id) }}"
-              class="row-inline">
+              class="row-inline action-group">
               <input type="hidden" name="next" value="{{ url_for('admin_dashboard') }}">
               <select name="status">
                 {% for s in order_statuses %}
@@ -156,10 +174,11 @@
               </select>
               <button class="btn" type="submit"><i class="fa-solid fa-pen"></i> Update</button>
             </form>
+            <span class="status-badge {{ status_class(order.status) }}">{{ order.status }}</span>
           </td>
-          <td>{{ order.created_at }}</td>
-          <td>
-            <div class="row-inline">
+          <td data-label="Date">{{ order.created_at }}</td>
+          <td data-label="Actions">
+            <div class="row-inline action-group">
               <a class="btn" href="{{ url_for('admin_order_detail', order_id=order.id) }}"><i
                   class="fa-solid fa-receipt"></i> Details</a>
               <form method="post" action="{{ url_for('admin_order_delete', order_id=order.id) }}"

@@ -8,7 +8,7 @@
     <p><strong>Customer:</strong> {{ order.customer_name }}</p>
     <p><strong>Phone:</strong> {{ order.phone }}</p>
     <p><strong>Address:</strong> {{ order.address }}</p>
-    <p><strong>Status:</strong> {{ order.status }}</p>
+    <p><strong>Status:</strong> <span class="status-badge {{ status_class(order.status) }}">{{ order.status }}</span></p>
     <form method="post" action="{{ url_for('admin_order_status_update', order_id=order.id) }}" class="row-inline mt-16">
       <input type="hidden" name="next" value="{{ url_for('admin_order_detail', order_id=order.id) }}">
       <label for="status"><strong>Update Status:</strong></label>
@@ -22,7 +22,7 @@
     {% if order.notes %}<p><strong>Notes:</strong> {{ order.notes }}</p>{% endif %}
 
     <div class="table-wrap mt-16">
-      <table>
+      <table class="responsive-table">
         <tr>
           <th>Item</th>
           <th>Qty</th>
@@ -31,10 +31,10 @@
         </tr>
         {% for it in items %}
           <tr>
-            <td>{{ it.item_name }}</td>
-            <td>{{ it.quantity }}</td>
-            <td>${{ '%.2f'|format(it.unit_price) }}</td>
-            <td>${{ '%.2f'|format(it.line_total) }}</td>
+            <td data-label="Item">{{ it.item_name }}</td>
+            <td data-label="Qty">{{ it.quantity }}</td>
+            <td data-label="Unit Price">${{ '%.2f'|format(it.unit_price) }}</td>
+            <td data-label="Line Total">${{ '%.2f'|format(it.line_total) }}</td>
           </tr>
         {% endfor %}
       </table>
@@ -42,7 +42,7 @@
 
     <p class="total">Total: ${{ '%.2f'|format(order.total_amount) }}</p>
 
-    <div class="row-inline">
+    <div class="row-inline action-group">
       <a class="btn" href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-arrow-left"></i> Back to Admin</a>
       <form method="post" action="{{ url_for('admin_order_delete', order_id=order.id) }}" onsubmit="return confirm('Delete order #{{ order.id }}? This cannot be undone.');">
         <button class="btn btn-danger" type="submit"><i class="fa-solid fa-trash"></i> Delete Order</button>

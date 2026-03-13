@@ -11,7 +11,7 @@
   {% else %}
     <div class="panel">
       <div class="table-wrap">
-        <table>
+        <table class="responsive-table">
           <tr>
             <th>ID</th>
             <th>Date</th>
@@ -21,11 +21,11 @@
           </tr>
           {% for order in orders %}
             <tr>
-              <td>#{{ order.id }}</td>
-              <td>{{ order.created_at }}</td>
-              <td>${{ '%.2f'|format(order.total_amount) }}</td>
-              <td>{{ order.status }}</td>
-              <td><a class="btn" href="{{ url_for('order_receipt', order_id=order.id) }}"><i class="fa-solid fa-receipt"></i> Receipt</a></td>
+              <td data-label="Order">#{{ order.id }}</td>
+              <td data-label="Date">{{ order.created_at }}</td>
+              <td data-label="Total">${{ '%.2f'|format(order.total_amount) }}</td>
+              <td data-label="Status"><span class="status-badge {{ status_class(order.status) }}">{{ order.status }}</span></td>
+              <td data-label="View"><a class="btn" href="{{ url_for('order_receipt', order_id=order.id) }}"><i class="fa-solid fa-receipt"></i> Receipt</a></td>
             </tr>
           {% endfor %}
         </table>

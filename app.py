@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from flask import *
-from sqlalchemy import func, select
+from sqlalchemy import desc, func, or_, select
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
@@ -21,6 +21,7 @@ UPLOAD_DIR = APP_DIR / "static" / "assets" / "images" / "menu_uploads"
 ALLOWED_EXT = {"jpg", "jpeg", "png", "webp", "gif"}
 ORDER_STATUSES = ("Pending", "Confirmed", "Preparing", "Out for Delivery", "Completed", "Cancelled")
 DEFAULT_PRODUCT_CATEGORIES = ("Watches", "Jewelry", "Bags", "Sunglasses", "Perfume")
+DEFAULT_SORT = "featured"
 
 app = Flask(__name__)
 app.secret_key = "dev"  # change for production
@@ -71,6 +72,7 @@ def inject_globals() -> dict[str, Any]:
     return {
         "current_user": get_current_user(),
         "now_year": datetime.now().year,
+        "status_class": status_class,
     }
 
 
@@ -96,6 +98,17 @@ def allowed_file(filename: str) -> bool:
     return ext in ALLOWED_EXT
 
 
+def status_class(status: str) -> str:
+    return f"status-{(status or '').strip().lower().replace(' ', '-')}"
+
+
+def get_local_redirect(default_endpoint: str = "menu") -> str:
+    target = (request.form.get("next") or request.args.get("next") or "").strip()
+    if target.startswith("/") and not target.startswith("//"):
+        return target
+    return url_for(default_endpoint)
+
+
 # Public storefront routes
 @app.get("/")
 def home():
@@ -117,15 +130,79 @@ def home():
 @app.get("/menu")
 def menu():
     with db() as dbs:
-        rows = dbs.execute(
-            select(Product).where(Product.is_active == 1).order_by(Product.category, Product.name)
+        categories = dbs.execute(
+            select(Product.category).where(Product.is_active == 1).distinct().order_by(Product.category.asc())
         ).scalars().all()
 
-    grouped: dict[str, list[Product]] = {}
-    for r in rows:
-        grouped.setdefault(r.category, []).append(r)
+        search = (request.args.get("q") or "").strip()
+        category = (request.args.get("category") or "").strip()
+        sort = (request.args.get("sort") or DEFAULT_SORT).strip()
 
-    return render_template("menu.html", title="Take Order - Aung Market", items=grouped)
+        query = select(Product).where(Product.is_active == 1)
+
+        if search:
+            term = f"%{search.lower()}%"
+            query = query.where(
+                or_(
+                    func.lower(Product.name).like(term),
+                    func.lower(Product.description).like(term),
+                    func.lower(Product.category).like(term),
+                )
+            )
+
+        if category:
+            query = query.where(func.lower(Product.category) == category.lower())
+
+        order_map: dict[str, tuple[Any, ...]] = {
+            "featured": (desc(Product.is_featured), Product.category.asc(), Product.name.asc()),
+            "price_asc": (Product.price.asc(), Product.name.asc()),
+            "price_desc": (Product.price.desc(), Product.name.asc()),
+            "newest": (Product.created_at.desc(), Product.name.asc()),
+            "name": (Product.name.asc(),),
+        }
+        order_clauses = order_map.get(sort, order_map[DEFAULT_SORT])
+        rows = dbs.execute(query.order_by(*order_clauses))
+        items = rows.scalars().all()
+
+    return render_template(
+        "menu.html",
+        title="Take Order - Aung Market",
+        items=items,
+        categories=categories,
+        selected_category=category,
+        search_query=search,
+        current_sort=sort,
+    )
+
+
+@app.get("/products/<int:product_id>")
+def product_detail(product_id: int):
+    with db() as dbs:
+        product = dbs.execute(
+            select(Product).where(Product.id == product_id, Product.is_active == 1)
+        ).scalars().all()
+        product = product[0] if product else None
+
+        if not product:
+            abort(404)
+
+        related_items = dbs.execute(
+            select(Product)
+            .where(
+                Product.is_active == 1,
+                Product.id != product.id,
+                Product.category == product.category,
+            )
+            .order_by(desc(Product.is_featured), Product.created_at.desc(), Product.name.asc())
+            .limit(4)
+        ).scalars().all()
+
+    return render_template(
+        "product_detail.html",
+        title=f"{product.name} - Aung Market",
+        product=product,
+        related_items=related_items,
+    )
 
 
 # Cart routes
@@ -165,7 +242,7 @@ def cart_add(product_id: int):
         }
     cart_save(cart)
     flash("Added to cart.", "success")
-    return redirect(url_for("menu"))
+    return redirect(get_local_redirect("menu"))
 
 
 @app.get("/cart")
@@ -596,6 +673,14 @@ def admin_dashboard():
             .order_by(Order.created_at.desc())
         ).scalars().all()
 
+    summary = {
+        "products": len(menu_items),
+        "active_products": sum(1 for item in menu_items if int(item.is_active) == 1),
+        "orders": len(orders),
+        "revenue": sum(float(order.total_amount) for order in orders),
+        "feedback": len(feedback_rows),
+    }
+
     existing_categories = {m.category.strip() for m in menu_items if (m.category or "").strip()}
     category_options = sorted(set(DEFAULT_PRODUCT_CATEGORIES).union(existing_categories))
 
@@ -607,6 +692,7 @@ def admin_dashboard():
         feedbackRows=feedback_rows,
         menuItems=menu_items,
         orders=orders,
+        summary=summary,
         order_statuses=ORDER_STATUSES,
         category_options=category_options,
     )
