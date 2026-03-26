@@ -1,0 +1,32 @@
+name: Python Check
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run syntax checks
+        run: |
+          python - <<'PY'
+          import py_compile
+          for path in ["app.py", "database.py", "forms.py", "wsgi.py"]:
+              py_compile.compile(path, doraise=True)
+          print("Python checks passed.")
+          PY
